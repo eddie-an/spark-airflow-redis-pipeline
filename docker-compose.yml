@@ -1,0 +1,77 @@
+version: "3.9"
+
+services:
+  # Redis (for state tracking + caching)
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - pipeline-net
+
+  # Spark Master
+  spark-master:
+    image: apache/spark:3.5.1
+    container_name: spark-master
+    command: >
+      /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master
+      --host spark-master
+    environment:
+      - SPARK_NO_DAEMONIZE=true
+    ports:
+      - "7077:7077"
+      - "8080:8080"    # Spark Master UI
+    networks:
+      - pipeline-net
+
+  # Spark Worker
+  spark-worker:
+    image: apache/spark:3.5.1
+    container_name: spark-worker
+    command: >
+      /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker
+      spark://spark-master:7077
+    environment:
+      - SPARK_NO_DAEMONIZE=true
+    depends_on:
+      - spark-master
+    ports:
+      - "8081:8081"    # Spark Worker UI
+    networks:
+      - pipeline-net
+
+  # Airflow (SequentialExecutor)
+  # Works with SQLite so no Postgres required
+  airflow:
+    image: apache/airflow:2.10.2
+    container_name: airflow
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=SequentialExecutor   # IMPORTANT: works with SQLite
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=sqlite:////opt/airflow/airflow.db
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins
+      - ./processing:/opt/airflow/processing        # Spark scripts mounted for DAG execution
+      - ./part1:/opt/airflow/part1                  # Your raw/processed data
+      - ./data:/opt/airflow/data                    # Incremental folders
+    ports:
+      - "8085:8080"   # Airflow UI
+    command: >
+      bash -c "
+      airflow db init &&
+      airflow users create --username admin --password admin --firstname admin --lastname user --role Admin --email admin@example.com &&
+      airflow webserver & airflow scheduler
+      "
+    depends_on:
+      - redis
+      - spark-master
+      - spark-worker
+    networks:
+      - pipeline-net
+
+networks:
+  pipeline-net:
+    driver: bridge
