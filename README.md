@@ -26,7 +26,7 @@ To split the data by day of week (order_dow) into 7 separate files and store the
 ```bash
 docker exec -it spark-master \
   /opt/spark/bin/spark-submit \
-  /opt/airflow/data/split.py
+  /opt/mnt/data/split.py
 ```
 
 The output CSV file is written to `data/raw/`
@@ -40,7 +40,7 @@ To run full data aggregation, run
 ```bash
 docker exec -it spark-master \
   /opt/spark/bin/spark-submit \
-  /opt/airflow/processing/full/full_aggregation.py
+  /opt/mnt/processing/full/full_aggregation.py
 ```
 
 The output CSV file is written to `data/processed/`
