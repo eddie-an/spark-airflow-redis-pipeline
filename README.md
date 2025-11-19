@@ -26,6 +26,7 @@ docker exec -it spark-master \
   /opt/airflow/part1/split.py
 ```
 
+Note that the produced CSV file names are not clean. Make sure to rename it to assignment's guidelines. In each part1/data/raw/`#`/name.csv, rename it to part1/data/raw/`#`/orders_`#`.csv
 
 ## Part 1
 

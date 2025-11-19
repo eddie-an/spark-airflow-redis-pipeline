@@ -26,7 +26,6 @@ orders_3 = df.filter(col("order_dow") == 3)
 orders_4 = df.filter(col("order_dow") == 4)
 orders_5 = df.filter(col("order_dow") == 5)
 orders_6 = df.filter(col("order_dow") == 6)
-orders_6.show(5)
 
 # Save each DataFrame as a CSV
 orders_0.coalesce(1).write.mode("overwrite").csv(f"{output_path}/0", header=True)
