@@ -3,15 +3,27 @@ from pyspark.sql.functions import *
 from pyspark.sql.types import *
 import os
 
-spark = SparkSession.builder.master("local[*]").getOrCreate()
+# spark = SparkSession.builder.master("local[*]").getOrCreate()
+
+spark = ( # Delete this later
+    SparkSession.builder
+    .master("local[*]")
+    .config("spark.driver.bindAddress", "127.0.0.1")
+    .config("spark.driver.host", "127.0.0.1")
+    .getOrCreate()
+)
 spark.conf.set("spark.sql.repl.eagerEval.enabled", True)
 
-df = spark.read.csv('orders.csv', header=True, sep=",")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+csv_path = os.path.join(BASE_DIR, "orders.csv")
 
-output_dir = "./data/raw"
+df = spark.read.csv(csv_path, header=True, sep=",")
+
+output_path = os.path.join(BASE_DIR, "data/raw")
+
 
 # Make sure the directory exists (Spark won't overwrite unless you tell it)
-os.makedirs(output_dir, exist_ok=True)
+os.makedirs(output_path, exist_ok=True)
 
 
 orders_0 = df.filter(col("order_dow") == 0)
@@ -24,10 +36,10 @@ orders_6 = df.filter(col("order_dow") == 6)
 orders_6.show(5)
 
 # Save each DataFrame as a CSV
-orders_0.coalesce(1).write.mode("overwrite").csv(f"{output_dir}/0/orders_0", header=True)
-orders_1.coalesce(1).write.mode("overwrite").csv(f"{output_dir}/1/orders_1", header=True)
-orders_2.coalesce(1).write.mode("overwrite").csv(f"{output_dir}/2/orders_2", header=True)
-orders_3.coalesce(1).write.mode("overwrite").csv(f"{output_dir}/3/orders_3", header=True)
-orders_4.coalesce(1).write.mode("overwrite").csv(f"{output_dir}/4/orders_4", header=True)
-orders_5.coalesce(1).write.mode("overwrite").csv(f"{output_dir}/5/orders_5", header=True)
-orders_6.coalesce(1).write.mode("overwrite").csv(f"{output_dir}/6/orders_6", header=True)
+orders_0.coalesce(1).write.mode("overwrite").csv(f"{output_path}/0", header=True)
+orders_1.coalesce(1).write.mode("overwrite").csv(f"{output_path}/1", header=True)
+orders_2.coalesce(1).write.mode("overwrite").csv(f"{output_path}/2", header=True)
+orders_3.coalesce(1).write.mode("overwrite").csv(f"{output_path}/3", header=True)
+orders_4.coalesce(1).write.mode("overwrite").csv(f"{output_path}/4", header=True)
+orders_5.coalesce(1).write.mode("overwrite").csv(f"{output_path}/5", header=True)
+orders_6.coalesce(1).write.mode("overwrite").csv(f"{output_path}/6", header=True)
