@@ -3,15 +3,8 @@ from pyspark.sql.functions import *
 from pyspark.sql.types import *
 import os
 
-# spark = SparkSession.builder.master("local[*]").getOrCreate()
+spark = SparkSession.builder.master("local[*]").getOrCreate()
 
-spark = ( # Delete this later
-    SparkSession.builder
-    .master("local[*]")
-    .config("spark.driver.bindAddress", "127.0.0.1")
-    .config("spark.driver.host", "127.0.0.1")
-    .getOrCreate()
-)
 spark.conf.set("spark.sql.repl.eagerEval.enabled", True)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -43,3 +36,6 @@ orders_3.coalesce(1).write.mode("overwrite").csv(f"{output_path}/3", header=True
 orders_4.coalesce(1).write.mode("overwrite").csv(f"{output_path}/4", header=True)
 orders_5.coalesce(1).write.mode("overwrite").csv(f"{output_path}/5", header=True)
 orders_6.coalesce(1).write.mode("overwrite").csv(f"{output_path}/6", header=True)
+
+
+# Note that the produced CSV file names are not clean. Make sure to rename it to assignment's guidelines

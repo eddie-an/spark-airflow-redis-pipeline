@@ -13,6 +13,21 @@ docker compose down
 
 Then run `docker compose up -d` again.
 
+To run the shell inside Docker, run the following
+```bash
+docker exec -it spark-master /bin/bash
+```
+
+## Part 0
+To split the data by day of week (order_dow) into 7 separate files and store them under different folders, run the following.
+```bash
+docker exec -it spark-master \
+  /opt/spark/bin/spark-submit \
+  /opt/airflow/part1/split.py
+```
+
+
+## Part 1
 
 To run full data aggregation, run 
 

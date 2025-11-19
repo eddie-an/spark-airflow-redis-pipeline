@@ -17,10 +17,11 @@ services:
     command: >
       /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master
       --host spark-master
-    volumes:
-      - ./processing:/opt/airflow/processing
     environment:
       - SPARK_NO_DAEMONIZE=true
+    volumes:
+      - ./processing:/opt/airflow/processing
+      - ./part1:/opt/airflow/part1
     ports:
       - "7077:7077"
       - "8080:8080"    # Spark Master UI
@@ -38,6 +39,9 @@ services:
       - SPARK_NO_DAEMONIZE=true
     depends_on:
       - spark-master
+    volumes:
+      - ./processing:/opt/airflow/processing
+      - ./part1:/opt/airflow/part1
     ports:
       - "8081:8081"    # Spark Worker UI
     networks:
