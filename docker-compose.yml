@@ -21,7 +21,7 @@ services:
       - SPARK_NO_DAEMONIZE=true
     volumes:
       - ./processing:/opt/airflow/processing
-      - ./part1:/opt/airflow/part1
+      - ./data:/opt/airflow/data
     ports:
       - "7077:7077"
       - "8080:8080"    # Spark Master UI
@@ -41,7 +41,7 @@ services:
       - spark-master
     volumes:
       - ./processing:/opt/airflow/processing
-      - ./part1:/opt/airflow/part1
+      - ./data:/opt/airflow/data
     ports:
       - "8081:8081"    # Spark Worker UI
     networks:
@@ -61,8 +61,7 @@ services:
       - ./airflow/logs:/opt/airflow/logs
       - ./airflow/plugins:/opt/airflow/plugins
       - ./processing:/opt/airflow/processing        # Spark scripts mounted for DAG execution
-      - ./part1:/opt/airflow/part1                  # Your raw/processed data
-      - ./data:/opt/airflow/data                    # Incremental folders
+      - ./data:/opt/airflow/data
     ports:
       - "8085:8080"   # Airflow UI
     command: >
