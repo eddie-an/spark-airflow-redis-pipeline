@@ -66,16 +66,12 @@ services:
       - ./airflow/dags:/opt/airflow/dags
       - ./airflow/logs:/opt/airflow/logs
       - ./airflow/plugins:/opt/airflow/plugins
+      - ./airflow/startup.sh:/opt/airflow/startup.sh
       - ./processing:/opt/mnt/processing
       - ./data:/opt/mnt/data
     ports:
       - "8085:8080"   # Airflow UI
-    command: >
-      bash -c 
-      airflow db init &&
-      airflow users create --username admin --password admin --firstname admin --lastname user --role Admin --email admin@example.com &&
-      airflow webserver & airflow scheduler
-      "
+    entrypoint: ["/bin/bash", "/opt/airflow/startup.sh"]
     depends_on:
       - redis
       - spark-master

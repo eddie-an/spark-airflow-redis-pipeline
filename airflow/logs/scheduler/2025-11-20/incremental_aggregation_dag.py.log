@@ -1,0 +1,70 @@
+[2025-11-20T21:47:38.026+0000] {processor.py:186} INFO - Started process (PID=34) to work on /opt/airflow/dags/incremental_aggregation_dag.py
+[2025-11-20T21:47:38.027+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/incremental_aggregation_dag.py for tasks to queue
+[2025-11-20T21:47:38.028+0000] {logging_mixin.py:190} INFO - [2025-11-20T21:47:38.028+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/incremental_aggregation_dag.py
+[2025-11-20T21:47:38.032+0000] {logging_mixin.py:190} INFO - [2025-11-20T21:47:38.031+0000] {dagbag.py:387} ERROR - Failed to import: /opt/airflow/dags/incremental_aggregation_dag.py
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/models/dagbag.py", line 383, in parse
+    loader.exec_module(new_module)
+  File "<frozen importlib._bootstrap_external>", line 995, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/opt/airflow/dags/incremental_aggregation_dag.py", line 3, in <module>
+    from airflow.providers.standard.operators.bash import BashOperator
+ModuleNotFoundError: No module named 'airflow.providers.standard'
+[2025-11-20T21:47:38.033+0000] {processor.py:927} WARNING - No viable dags retrieved from /opt/airflow/dags/incremental_aggregation_dag.py
+[2025-11-20T21:47:38.045+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/incremental_aggregation_dag.py took 0.023 seconds
+[2025-11-20T21:48:08.365+0000] {processor.py:186} INFO - Started process (PID=65) to work on /opt/airflow/dags/incremental_aggregation_dag.py
+[2025-11-20T21:48:08.367+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/incremental_aggregation_dag.py for tasks to queue
+[2025-11-20T21:48:08.372+0000] {logging_mixin.py:190} INFO - [2025-11-20T21:48:08.371+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/incremental_aggregation_dag.py
+[2025-11-20T21:48:08.382+0000] {logging_mixin.py:190} INFO - [2025-11-20T21:48:08.380+0000] {dagbag.py:387} ERROR - Failed to import: /opt/airflow/dags/incremental_aggregation_dag.py
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/models/dagbag.py", line 383, in parse
+    loader.exec_module(new_module)
+  File "<frozen importlib._bootstrap_external>", line 995, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/opt/airflow/dags/incremental_aggregation_dag.py", line 3, in <module>
+    from airflow.providers.standard.operators.bash import BashOperator
+ModuleNotFoundError: No module named 'airflow.providers.standard'
+[2025-11-20T21:48:08.383+0000] {processor.py:927} WARNING - No viable dags retrieved from /opt/airflow/dags/incremental_aggregation_dag.py
+[2025-11-20T21:48:08.402+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/incremental_aggregation_dag.py took 0.048 seconds
+[2025-11-20T21:48:38.794+0000] {processor.py:186} INFO - Started process (PID=77) to work on /opt/airflow/dags/incremental_aggregation_dag.py
+[2025-11-20T21:48:38.795+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/incremental_aggregation_dag.py for tasks to queue
+[2025-11-20T21:48:38.799+0000] {logging_mixin.py:190} INFO - [2025-11-20T21:48:38.798+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/incremental_aggregation_dag.py
+[2025-11-20T21:48:38.805+0000] {logging_mixin.py:190} INFO - [2025-11-20T21:48:38.803+0000] {dagbag.py:387} ERROR - Failed to import: /opt/airflow/dags/incremental_aggregation_dag.py
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/models/dagbag.py", line 383, in parse
+    loader.exec_module(new_module)
+  File "<frozen importlib._bootstrap_external>", line 995, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/opt/airflow/dags/incremental_aggregation_dag.py", line 3, in <module>
+    from airflow.providers.standard.operators.bash import BashOperator
+ModuleNotFoundError: No module named 'airflow.providers.standard'
+[2025-11-20T21:48:38.806+0000] {processor.py:927} WARNING - No viable dags retrieved from /opt/airflow/dags/incremental_aggregation_dag.py
+[2025-11-20T21:48:38.820+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/incremental_aggregation_dag.py took 0.034 seconds
+[2025-11-20T21:49:09.158+0000] {processor.py:186} INFO - Started process (PID=80) to work on /opt/airflow/dags/incremental_aggregation_dag.py
+[2025-11-20T21:49:09.159+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/incremental_aggregation_dag.py for tasks to queue
+[2025-11-20T21:49:09.162+0000] {logging_mixin.py:190} INFO - [2025-11-20T21:49:09.161+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/incremental_aggregation_dag.py
+[2025-11-20T21:49:09.167+0000] {logging_mixin.py:190} INFO - [2025-11-20T21:49:09.165+0000] {dagbag.py:387} ERROR - Failed to import: /opt/airflow/dags/incremental_aggregation_dag.py
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/models/dagbag.py", line 383, in parse
+    loader.exec_module(new_module)
+  File "<frozen importlib._bootstrap_external>", line 995, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/opt/airflow/dags/incremental_aggregation_dag.py", line 3, in <module>
+    from airflow.providers.standard.operators.bash import BashOperator
+ModuleNotFoundError: No module named 'airflow.providers.standard'
+[2025-11-20T21:49:09.167+0000] {processor.py:927} WARNING - No viable dags retrieved from /opt/airflow/dags/incremental_aggregation_dag.py
+[2025-11-20T21:49:09.182+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/incremental_aggregation_dag.py took 0.030 seconds
+[2025-11-20T21:49:39.565+0000] {processor.py:186} INFO - Started process (PID=81) to work on /opt/airflow/dags/incremental_aggregation_dag.py
+[2025-11-20T21:49:39.567+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/incremental_aggregation_dag.py for tasks to queue
+[2025-11-20T21:49:39.571+0000] {logging_mixin.py:190} INFO - [2025-11-20T21:49:39.571+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/incremental_aggregation_dag.py
+[2025-11-20T21:49:39.577+0000] {logging_mixin.py:190} INFO - [2025-11-20T21:49:39.576+0000] {dagbag.py:387} ERROR - Failed to import: /opt/airflow/dags/incremental_aggregation_dag.py
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/models/dagbag.py", line 383, in parse
+    loader.exec_module(new_module)
+  File "<frozen importlib._bootstrap_external>", line 995, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/opt/airflow/dags/incremental_aggregation_dag.py", line 3, in <module>
+    from airflow.providers.standard.operators.bash import BashOperator
+ModuleNotFoundError: No module named 'airflow.providers.standard'
+[2025-11-20T21:49:39.578+0000] {processor.py:927} WARNING - No viable dags retrieved from /opt/airflow/dags/incremental_aggregation_dag.py
+[2025-11-20T21:49:39.594+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/incremental_aggregation_dag.py took 0.037 seconds
