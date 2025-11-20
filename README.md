@@ -34,7 +34,11 @@ docker exec -it spark-master \
 
 The output CSV file is written to `data/raw/`
 
-Note that the produced CSV file names are not clean. Make sure to rename it to assignment's guidelines. In each part1/data/raw/`#`/name.csv, rename it to part1/data/raw/`#`/orders_`#`.csv. If the CSV files are not renamed, there will be issues with running the next part.
+Note that the produced CSV file names are not clean. Make sure to rename it to assignment's guidelines. In each part1/data/raw/`#`/name.csv, rename it to part1/data/raw/`#`/orders_`#`.csv. 
+
+So for example, `part1/data/raw/0/part-0000-8b39fdsf.csv` should be renamed to `part1/data/raw/0/orders_0.csv`.
+
+If the CSV files are not renamed, there will be issues with running the next parts.
 
 ## Part 1
 
@@ -51,8 +55,13 @@ Note that the produced CSV file name is not clean. Make sure to rename it to `or
 
 
 ## Part 2
+Since daily data arrival will be simulated to perform incremental aggregation, create folders (only the following three) and copy the raw data from part 1. Make sure the file names are `orders_0.csv`, `orders_1.csv`, and `orders_3.csv`
+- data/incremental/raw/0/
+- data/incremental/raw/1/
+- data/incremental/raw/2/
 
-To run incremental data aggregation, run 
+
+After the files are copied over, run the following command to start incremental data aggregation.
 
 ```bash
 docker exec -it spark-master \
