@@ -3,9 +3,14 @@ from pyspark.sql.functions import *
 from pyspark.sql.types import *
 import os
 
-spark = SparkSession.builder.master("local[*]").getOrCreate()
-
-spark.conf.set("spark.sql.repl.eagerEval.enabled", True)
+spark = (
+    SparkSession.builder
+        .appName("FullAggregation")
+        .master("spark://spark-master:7077")
+        .config("spark.driver.bindAddress", "0.0.0.0")
+        .config("spark.driver.host", "spark-master")
+        .getOrCreate()
+)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 csv_path = os.path.join(BASE_DIR, "orders.csv")

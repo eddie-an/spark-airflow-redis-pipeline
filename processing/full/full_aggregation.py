@@ -11,7 +11,6 @@ spark = (
         .config("spark.driver.host", "spark-master")
         .getOrCreate()
 )
-spark.conf.set("spark.sql.repl.eagerEval.enabled", True)
 
 # Directories
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))

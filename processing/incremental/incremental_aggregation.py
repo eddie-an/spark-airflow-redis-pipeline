@@ -14,7 +14,7 @@ else:
     value = r.get('processed_day')
     start_day = (int)(value.decode('utf-8'))+1
 
-# spark = SparkSession.builder.master("local[*]").getOrCreate() for local
+# spark = SparkSession.builder.master("local[*]").getOrCreate() # for local
 
 spark = (
     SparkSession.builder
@@ -24,7 +24,6 @@ spark = (
         .config("spark.driver.host", "spark-master")
         .getOrCreate()
 )
-
 
 # Directories
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))

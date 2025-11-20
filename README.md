@@ -24,14 +24,6 @@ docker compose down
 
 Then run `docker compose up -d` again.
 
-
-To run the shell inside spark container in Docker, run the following
-```bash
-docker exec -it spark-master /bin/bash
-```
-
-To escape the shell inside Docker, run `exit` in the shell.
-
 ## Part 0
 To split the data by day of week (order_dow) into 7 separate files and store them under different folders, run the following.
 ```bash
@@ -42,7 +34,7 @@ docker exec -it spark-master \
 
 The output CSV file is written to `data/raw/`
 
-Note that the produced CSV file names are not clean. Make sure to rename it to assignment's guidelines. In each part1/data/raw/`#`/name.csv, rename it to part1/data/raw/`#`/orders_`#`.csv
+Note that the produced CSV file names are not clean. Make sure to rename it to assignment's guidelines. In each part1/data/raw/`#`/name.csv, rename it to part1/data/raw/`#`/orders_`#`.csv. If the CSV files are not renamed, there will be issues with running the next part.
 
 ## Part 1
 
@@ -58,11 +50,40 @@ The output CSV file is written to `data/processed/`
 Note that the produced CSV file name is not clean. Make sure to rename it to `orders.csv`
 
 
-
 ## Part 2
+
+To run incremental data aggregation, run 
 
 ```bash
 docker exec -it spark-master \
   /opt/spark/bin/spark-submit \
   /opt/mnt/processing/incremental/incremental_aggregation.py
 ```
+
+The output CSV file is written to `data/processed/`
+Note that the produced CSV file name is not clean. This is fine.
+
+#### Checking Contents of Redis
+After running the incremental data aggregation, we can check the contents of Redis.
+
+To run the shell inside Redis container in Docker, run the following,
+```bash
+docker exec -it redis /bin/bash
+```
+
+Once inside the Redis container, run the `redis-cli` to interact with Redis.
+```bash
+redis-cli
+```
+
+The `keys *` command can be used inside redis-cli to see all keys stored in Redis.
+```bash
+keys *
+```
+
+The `get` command can be used in redis-cli to see the value of `processed_day` key in Redis.
+```bash
+get processed_day
+```
+
+To escape the redis-cli and/or the Redis Docker container, run `exit` in the shell.
