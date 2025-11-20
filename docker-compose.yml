@@ -56,8 +56,10 @@ services:
   # Airflow (SequentialExecutor)
   # Works with SQLite so no Postgres required
   airflow:
-    image: apache/airflow:2.10.2
     container_name: airflow
+    build:
+      context: ./airflow
+      dockerfile: Dockerfile.airflow
     environment:
       - AIRFLOW__CORE__EXECUTOR=SequentialExecutor   # IMPORTANT: works with SQLite
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=sqlite:////opt/airflow/airflow.db
