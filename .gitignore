@@ -1,7 +1,7 @@
 *.crc
 _SUCCESS
 .DS_Store
-*/__pycache__/
-*/__pycache__/*
-airflow/logs/*
+**/__pycache__/
+**/__pycache__/*
+airflow/logs/**
 airflow/logs/
