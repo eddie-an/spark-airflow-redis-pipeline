@@ -1,0 +1,7 @@
+FROM apache/spark:3.5.1
+
+USER root
+RUN pip install redis
+
+# switch back so Spark doesn't run as root
+USER spark

@@ -25,7 +25,7 @@ docker compose down
 Then run `docker compose up -d` again.
 
 
-To run the shell inside spark container, run the following
+To run the shell inside spark container in Docker, run the following
 ```bash
 docker exec -it spark-master /bin/bash
 ```
@@ -56,3 +56,13 @@ docker exec -it spark-master \
 
 The output CSV file is written to `data/processed/`
 Note that the produced CSV file name is not clean. Make sure to rename it to `orders.csv`
+
+
+
+## Part 2
+
+```bash
+docker exec -it spark-master \
+  /opt/spark/bin/spark-submit \
+  /opt/mnt/processing/incremental/incremental_aggregation.py
+```

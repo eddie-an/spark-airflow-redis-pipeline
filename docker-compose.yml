@@ -14,13 +14,15 @@ services:
 
   # Spark Master
   spark-master:
-    image: apache/spark:3.5.1
     container_name: spark-master
     command: >
       /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master
       --host spark-master
     environment:
       - SPARK_NO_DAEMONIZE=true
+    build:
+      context: ./spark
+      dockerfile: Dockerfile.spark
     volumes:
       - ./processing:/opt/mnt/processing
       - ./data:/opt/mnt/data
@@ -32,13 +34,15 @@ services:
 
   # Spark Worker
   spark-worker:
-    image: apache/spark:3.5.1
     container_name: spark-worker
     command: >
       /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker
       spark://spark-master:7077
     environment:
       - SPARK_NO_DAEMONIZE=true
+    build:
+      context: ./spark
+      dockerfile: Dockerfile.spark
     depends_on:
       - spark-master
     volumes:

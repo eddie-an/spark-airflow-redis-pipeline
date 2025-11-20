@@ -4,7 +4,7 @@ from pyspark.sql.types import *
 import os
 import redis
 
-r = redis.Redis(host='localhost', port=6379, db=0)
+r = redis.Redis(host='redis', port=6379, db=0)
 exists = r.exists("processed_day")
 
 start_day = None
@@ -14,17 +14,17 @@ else:
     value = r.get('processed_day')
     start_day = (int)(value.decode('utf-8'))+1
 
-# spark = SparkSession.builder.master("local[*]").getOrCreate()
+# spark = SparkSession.builder.master("local[*]").getOrCreate() for local
 
-spark = ( # Delete this later
+spark = (
     SparkSession.builder
-    .master("local[*]")
-    .config("spark.driver.bindAddress", "127.0.0.1")
-    .config("spark.driver.host", "127.0.0.1")
-    .getOrCreate()
+        .appName("IncrementalAggregation")
+        .master("spark://spark-master:7077")
+        .config("spark.driver.bindAddress", "0.0.0.0")
+        .config("spark.driver.host", "spark-master")
+        .getOrCreate()
 )
 
-spark.conf.set("spark.sql.repl.eagerEval.enabled", True)
 
 # Directories
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
