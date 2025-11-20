@@ -25,7 +25,7 @@ docker compose down
 Then run `docker compose up -d` again.
 
 
-To run the shell inside Docker, run the following
+To run the shell inside spark container, run the following
 ```bash
 docker exec -it spark-master /bin/bash
 ```
