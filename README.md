@@ -63,8 +63,8 @@ Since daily data arrival will be simulated to perform incremental aggregation, c
 - data/incremental/raw/1/
 - data/incremental/raw/2/
 
-
-After the files are copied over, run the following command to start incremental data aggregation:
+### Manually Running Incremental Data Aggregation
+After the files are copied over, run the following command to manually run incremental data aggregation:
 
 ```bash
 docker exec -it spark-master \
@@ -99,3 +99,26 @@ get processed_day
 ```
 
 To escape the redis-cli and/or the Redis Docker container, run `exit` in the shell.
+
+### Scheduling Incremental Data Aggregation Using Airflow
+Run the shell inside the Airflow container in Docker with the following command:
+```bash
+docker exec -it airflow /bin/bash
+```
+
+Once inside the Airflow container in Docker, run the `airflow dags list` command to see all the airflow dags
+```bash
+airflow@53789362447e:/opt/mnt/data$ airflow dags list
+dag_id                  | fileloc                                          | owners  | is_paused
+========================+==================================================+=========+==========
+incremental_aggregation | /opt/airflow/dags/incremental_aggregation_dag.py | airflow | True     
+```
+
+Every Airflow script located inside the `/opt/airflow/dags` folder is listed as an Airflow DAG by default. Notice that `is_paused` is set to True. This means the DAG won't run until it is unpaused.
+
+To unpause the Airflow DAG, simply run the following command.
+```bash
+airflow dags unpause incremental_aggregation
+```
+
+Now the `incremental_aggregation.py` script should be run on a schedule.

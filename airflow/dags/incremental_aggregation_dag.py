@@ -17,7 +17,5 @@ with DAG(
             #     '/opt/spark/bin/spark-submit '
             #     '/opt/mnt/processing/incremental/incremental_aggregation.py'
             # ),
-            bash_command=(
-                    'echo hello'
-            )
+            bash_command='echo "DAG ran at $(date)" >> /opt/mnt/data/sanity_check.txt'
         )
