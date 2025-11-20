@@ -7,7 +7,7 @@ with DAG(
     'incremental_aggregation',
     description='Run Spark incremental aggregation job',
     schedule='*/1 * * * *',  # Airflow cron cannot do 4 seconds natively
-    start_date=datetime.now(),
+    start_date=datetime(2025, 11, 20, 0, 0, 0),
     catchup=False,
     max_active_runs=1) as dag:
         BashOperator(
