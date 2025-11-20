@@ -9,7 +9,10 @@
 The file `split.py` uses Spark to partition the `orders.csv` data by the day of week (order_dow) column into 7 separate files and store them in `data/raw` folder.
 
 #### Part 1
-The file `full_aggregation.py` uses Spark to process the 7 raw data files created in part 0 of the assignment. To be specific, Spark is used to aggregate the order data into a smaller dataset showing the number of items sold for each category, grouped by day of week and hour of day. It is then stored in the `data/processed` folder.
+The file `full_aggregation.py` uses Spark to process the 7 raw data files created in part 0 of the assignment. To be specific, Spark is used to aggregate the order data into a smaller dataset showing the number of items sold for each category, grouped by day of week and hour of day. The output CSV file is then stored in the `data/processed` folder.
+
+#### Part 2
+The file `incremental_aggregation.py` does the same thing as part 1 except it only reads the unprocessed folders (new days) each time it runs. It keeps track of a key, named "processed_day" stored in Redis to determine which files should be aggregated. The key is updated each time the aggregation is run. Similar to part 1, the output CSV file is also stored in the `data/processed` folder.
 
 # How to run the pipeline
 Run the following command in the direcotry containing `docker-compose.yml` to configure Redis, Apache Spark, and Airflow in Docker containers
