@@ -38,9 +38,8 @@ docker exec -it spark-master \
   /opt/mnt/data/split.py
 ```
 
-The output CSV file is written to `data/raw/`.
-
-Note that the produced CSV file names are not clean. Make sure to rename it to assignment's guidelines. In each data/raw/`#`/file_name.csv, rename it to data/raw/`#`/orders_`#`.csv. 
+The output CSV files appears in `data/raw/`, but Spark writes ugly filenames. Rename them to match the assignment requirements.
+In each data/raw/`#`/file_name.csv, rename it to data/raw/`#`/orders_`#`.csv. 
 
 So for example, `data/raw/0/part-0000-8b39fdsf.csv` should be renamed to `data/raw/0/orders_0.csv`.
 
@@ -56,15 +55,15 @@ docker exec -it spark-master \
   /opt/mnt/processing/full/full_aggregation.py
 ```
 
-The output CSV file is written to `data/processed/`.
-Note that the produced CSV file name is not clean. Make sure to rename it to `orders.csv`.
-
+The output CSV file appears in `data/processed/`, but Spark writes ugly filenames. Make sure to rename it to `orders.csv`.
 
 ## Part 2
-Since daily data arrival will be simulated to perform incremental aggregation, create folders (only the following three) and copy the raw data from part 1. Make sure the file names are `orders_0.csv`, `orders_1.csv`, and `orders_3.csv`.
+Since daily data arrival will be simulated to perform incremental aggregation, create folders (only the following three) and copy the raw data from part 1. Make sure the file names are `orders_0.csv`, `orders_1.csv`, and `orders_2.csv`.
 - data/incremental/raw/0/
 - data/incremental/raw/1/
 - data/incremental/raw/2/
+
+The incremental aggregation can be simulated manually or the Airflow DAG can be used to schedule the aggregation. This README will cover both methods.
 
 ### Manually Running Incremental Data Aggregation
 After the CSV files are copied over, run the following command to manually run incremental data aggregation:
@@ -75,13 +74,13 @@ docker exec -it spark-master \
   /opt/mnt/processing/incremental/incremental_aggregation.py
 ```
 
-The output CSV file is written to `data/processed/`.
-Note that the produced CSV file name is not clean. This is fine.
+The output CSV file appears in `data/processed/`, but Spark writes ugly filenames. This is fine.
+
 
 ### Scheduling Incremental Data Aggregation Using Airflow
 There are two ways to schedule Airflow DAG.
 - Command Line Interface
-- Graphic User Interface
+- Graphical User Interface
 
 #### Command Line Interface
 Run the shell inside the Airflow container in Docker with the following command:
@@ -97,7 +96,7 @@ dag_id                  | fileloc                                          | own
 incremental_aggregation | /opt/airflow/dags/incremental_aggregation_dag.py | airflow | True     
 ```
 
-Every Airflow script located inside the `/opt/airflow/dags` folder is listed as an Airflow DAG by default. Notice that `is_paused` is set to True. This means the DAG won't run until it is unpaused.
+Every Airflow script located inside the `/opt/airflow/dags` folder is listed as an Airflow DAG by default. Airflow pauses new DAGs by default, so you must unpause it before it will run.
 
 To unpause the Airflow DAG, simply run the following command.
 ```bash
@@ -106,7 +105,7 @@ airflow dags unpause incremental_aggregation
 
 Now the `incremental_aggregation.py` script should be run on a schedule.
 
-#### Graphic User Interface
+#### Graphical User Interface
 Go to [localhost:8085](http://localhost:8085/)
 
 You will be prompted to a login page as shown below:
@@ -122,7 +121,7 @@ You will be prompted to a home page as shown below:
 Click on the button located on the left of the DAG name to pause/unpause the DAG.
 ![Pause/Unpause DAG](/assets/Airflow_unpause_DAG.png)
 
-#### Inspecting Redis Cache Contents
+### Inspecting Redis Cache Contents
 After running the incremental data aggregation either manually or automatically using a schedule, we can verify that data has been written to Redis.
 
 To run the shell inside Redis container in Docker, run the following:
