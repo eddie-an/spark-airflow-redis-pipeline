@@ -101,6 +101,8 @@ get processed_day
 To escape the redis-cli and/or the Redis Docker container, run `exit` in the shell.
 
 ### Scheduling Incremental Data Aggregation Using Airflow
+
+#### CLI
 Run the shell inside the Airflow container in Docker with the following command:
 ```bash
 docker exec -it airflow /bin/bash
@@ -122,3 +124,5 @@ airflow dags unpause incremental_aggregation
 ```
 
 Now the `incremental_aggregation.py` script should be run on a schedule.
+
+#### GUI
