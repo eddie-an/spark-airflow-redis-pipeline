@@ -6,16 +6,16 @@
 
 # Files
 #### Part 0
-The file `split.py` uses Spark to partition the `orders.csv` data by the day of week (order_dow) column into 7 separate files and store them in `data/raw` folder.
+The file [`split.py`](/data/split.py) uses Spark to partition the [`orders.csv`](/data/orders.csv) data by the day of week (order_dow) column into 7 separate CSV files and store them in [`data/raw`](/data/raw/) folder.
 
 #### Part 1
-The file `full_aggregation.py` uses Spark to process the 7 raw data files created in part 0 of the assignment. To be specific, Spark is used to aggregate the order data into a smaller dataset showing the number of items sold for each category, grouped by day of week and hour of day. The output CSV file is then stored in the `data/processed` folder.
+The file [`full_aggregation.py`](/processing/full/full_aggregation.py) uses Spark to process the 7 raw data files created in part 0 of the assignment. To be specific, Spark is used to aggregate the order data into a smaller dataset showing the number of items sold for each category, grouped by day of week and hour of day. The output CSV file is then stored in the [`data/processed`](/data/processed/) folder.
 
 #### Part 2
-The file `incremental_aggregation.py` does the same thing as part 1 except it only reads the unprocessed folders (new days) each time it runs. It keeps track of a key, named "processed_day" stored in Redis to determine which files should be aggregated. The key is updated each time the aggregation is run. Similar to part 1, the output CSV file is also stored in the `data/processed` folder.
+The file [`incremental_aggregation.py`](/processing/incremental/incremental_aggregation.py) does the same thing as part 1 except it only reads the unprocessed folders (new days) each time it runs. It keeps track of a key, named `processed_day` stored in Redis to determine which files should be aggregated. The key is updated each time the aggregation is run. Similar to part 1, the output CSV file is also stored in the [`data/processed`](/data/processed/) folder. The [`incremental_aggregation_dag.py`](/airflow/dags/incremental_aggregation_dag.py) file is used to run the aggregation on a schedule.
 
 # How to run the pipeline
-Run the following command in the direcotry containing `docker-compose.yml` to configure Redis, Apache Spark, and Airflow in Docker containers,
+Run the following command in the directory containing `docker-compose.yml` to configure Redis, Apache Spark, and Airflow in Docker containers,
 ```bash
 docker compose up -d
 ```
@@ -37,9 +37,9 @@ docker exec -it spark-master \
 
 The output CSV file is written to `data/raw/`.
 
-Note that the produced CSV file names are not clean. Make sure to rename it to assignment's guidelines. In each part1/data/raw/`#`/name.csv, rename it to part1/data/raw/`#`/orders_`#`.csv. 
+Note that the produced CSV file names are not clean. Make sure to rename it to assignment's guidelines. In each data/raw/`#`/file_name.csv, rename it to data/raw/`#`/orders_`#`.csv. 
 
-So for example, `part1/data/raw/0/part-0000-8b39fdsf.csv` should be renamed to `part1/data/raw/0/orders_0.csv`.
+So for example, `data/raw/0/part-0000-8b39fdsf.csv` should be renamed to `data/raw/0/orders_0.csv`.
 
 If the CSV files are not renamed, there will be issues with running the next parts.
 
@@ -64,7 +64,7 @@ Since daily data arrival will be simulated to perform incremental aggregation, c
 - data/incremental/raw/2/
 
 ### Manually Running Incremental Data Aggregation
-After the files are copied over, run the following command to manually run incremental data aggregation:
+After the CSV files are copied over, run the following command to manually run incremental data aggregation:
 
 ```bash
 docker exec -it spark-master \
@@ -75,34 +75,12 @@ docker exec -it spark-master \
 The output CSV file is written to `data/processed/`.
 Note that the produced CSV file name is not clean. This is fine.
 
-#### Inspecting Redis Cache Contents
-After running the incremental data aggregation, we can verify that data has been written to Redis.
-
-To run the shell inside Redis container in Docker, run the following:
-```bash
-docker exec -it redis /bin/bash
-```
-
-Once inside the Redis container in Docker, run the `redis-cli` command to interact with Redis.
-```bash
-redis-cli
-```
-
-The `keys *` command can be used inside redis-cli to see all keys stored in Redis.
-```bash
-keys *
-```
-
-The `get` command can be used in redis-cli to see the value of `processed_day` key in Redis.
-```bash
-get processed_day
-```
-
-To escape the redis-cli and/or the Redis Docker container, run `exit` in the shell.
-
 ### Scheduling Incremental Data Aggregation Using Airflow
+There are two ways to schedule Airflow DAG.
+- Command Line Interface
+- Graphic User Interface
 
-#### CLI
+#### Command Line Interface
 Run the shell inside the Airflow container in Docker with the following command:
 ```bash
 docker exec -it airflow /bin/bash
@@ -125,4 +103,50 @@ airflow dags unpause incremental_aggregation
 
 Now the `incremental_aggregation.py` script should be run on a schedule.
 
-#### GUI
+#### Graphic User Interface
+Go to [localhost:8085](http://localhost:8085/)
+
+You will be prompted to a login page as shown below:
+![Login Page](/assets/Airflow_login_page.png)
+
+Login using 
+- username: `admin`
+- password: `admin`
+
+You will be prompted to a home page as shown below:
+![Home Page](/assets/Airflow_home_page.png)
+
+Click on the button located on the left of the DAG name to pause/unpause the DAG.
+![Pause/Unpause DAG](/assets/Airflow_unpause_DAG.png)
+
+#### Inspecting Redis Cache Contents
+After running the incremental data aggregation either manually or automatically using a schedule, we can verify that data has been written to Redis.
+
+To run the shell inside Redis container in Docker, run the following:
+```bash
+docker exec -it redis /bin/bash
+```
+
+Once inside the Redis container in Docker, run the `redis-cli` command to interact with Redis.
+```bash
+redis-cli
+```
+
+The `keys *` command can be used in redis-cli to see all keys stored in Redis.
+```bash
+keys *
+```
+
+The `get` command can be used in redis-cli to see the value of `processed_day` key in Redis.
+```bash
+get processed_day
+```
+
+The `del` command can be used in redis-cli to delete key-value pairs stored in Redis.
+```bash
+del processed_day
+```
+
+Note that if the `processed_day` key is deleted, the aggregation will run on ALL the CSV files inside the incremental/raw folders. Essentially, when Redis is cleared, the system reprocesses everything from scratch.
+
+To escape the redis-cli and/or the Redis Docker container, run `exit` in the shell.
