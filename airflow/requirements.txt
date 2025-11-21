@@ -1,0 +1,6 @@
+pyspark
+redis
+pandas
+numpy
+requests
+apache-airflow-providers-standard

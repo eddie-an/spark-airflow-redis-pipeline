@@ -12,10 +12,7 @@ with DAG(
     max_active_runs=1) as dag:
         BashOperator(
             task_id='run_incremental_spark',
-            # bash_command=(
-            #     'docker exec spark-master '
-            #     '/opt/spark/bin/spark-submit '
-            #     '/opt/mnt/processing/incremental/incremental_aggregation.py'
-            # ),
-            bash_command='echo "DAG ran at $(date)" >> /opt/mnt/data/sanity_check.txt'
+            bash_command=(
+                '/opt/spark/bin/spark-submit /opt/mnt/processing/incremental/incremental_aggregation.py'
+            ),
         )

@@ -25,6 +25,7 @@ spark = (
         .getOrCreate()
 )
 
+
 # Directories
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 output_path = os.path.join(BASE_DIR, "../../data/processed")
