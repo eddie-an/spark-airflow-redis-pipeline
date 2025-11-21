@@ -30,3 +30,6 @@ data/raw/6/*.csv
 **/__pycache__/*
 airflow/logs/**
 airflow/logs/
+
+# Ignore committing log files
+**/log.txt

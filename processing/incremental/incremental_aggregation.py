@@ -3,8 +3,11 @@ from pyspark.sql.functions import *
 from pyspark.sql.types import *
 import os
 import redis
+from datetime import datetime
+from zoneinfo import ZoneInfo  
 
 def main():
+    execution_timestamp = datetime.now(ZoneInfo("Canada/Mountain"))
     r = redis.Redis(host='redis', port=6379, db=0)
     exists = r.exists("processed_day")
 
@@ -45,7 +48,8 @@ def main():
 
     # Nothing to aggregate
     if df_combined is None:
-        print(f"Nothing needs to be aggregated.\nEither everything is up to date or the files don't exist")
+        with open(f'{output_path}/log.txt', "a") as logFile:
+            logFile.write(f'[{execution_timestamp}] Nothing has been aggregated.\n')
         return
     
     category_columns = df_combined.columns[4:]
@@ -61,6 +65,10 @@ def main():
         df_final.groupBy("order_dow", "order_hour_of_day", "category").count().show(50, truncate=False) # Show the final DataFrame
         df_final.coalesce(1).write.mode("append").csv(output_path, header=True) # Append to csv
         r.set("processed_day", last_day)  # runs ONLY if write succeeds
+
+        with open(f'{output_path}/log.txt', "a") as logFile:
+            logFile.write(f"[{execution_timestamp}] Incremental Aggregation ran for days {start_day}-{last_day}. "
+            f"Output CSV written to {output_path}. Redis 'processed_day' updated to {last_day}.\n")
     except Exception as e:
         print("Write failed, not updating Redis:", e)
 
