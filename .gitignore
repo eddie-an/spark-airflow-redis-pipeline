@@ -1,6 +1,31 @@
+# MacOS Junk
+.DS_Store
+
+# Pyspark output junk
 *.crc
 _SUCCESS
-.DS_Store
+
+# Ignore every csv file except for the original file
+data/incremental/raw/0/*.csv
+data/incremental/raw/1/*.csv
+data/incremental/raw/2/*.csv
+data/incremental/raw/3/*.csv
+data/incremental/raw/4/*.csv
+data/incremental/raw/5/*.csv
+data/incremental/raw/6/*.csv
+
+data/processed/*.csv
+data/processed/*.csv
+
+data/raw/0/*.csv
+data/raw/1/*.csv
+data/raw/2/*.csv
+data/raw/3/*.csv
+data/raw/4/*.csv
+data/raw/5/*.csv
+data/raw/6/*.csv
+
+# Airflow junk
 **/__pycache__/
 **/__pycache__/*
 airflow/logs/**

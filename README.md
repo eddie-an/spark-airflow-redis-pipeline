@@ -1,4 +1,7 @@
 # spark-airflow-redis-pipeline
+## TODO: DELETE LATER
+- Airflow DAG to run every 4 seconds (instead of 1 minute). Currently, using CRON syntax so one minute is as granular as it gets.
+
 ## SENG 550 Assignment 3
 ### Members:
 - Edward An UCID: 30142179
