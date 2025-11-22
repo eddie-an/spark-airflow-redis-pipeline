@@ -63,3 +63,11 @@ mse = predictions.withColumn(
 ).agg({"sqErr": "avg"}).collect()[0][0]
 
 print("Test MSE =", mse)
+
+
+MODEL_DIR = os.path.join(BASE_DIR, "models")
+os.makedirs(MODEL_DIR, exist_ok=True)
+
+rf_model.save(os.path.join(MODEL_DIR, "rf_model"))
+fitted_indexer.save(os.path.join(MODEL_DIR, "indexer"))
+fitted_encoder.save(os.path.join(MODEL_DIR, "encoder"))

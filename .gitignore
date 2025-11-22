@@ -33,3 +33,6 @@ airflow/logs/
 
 # Ignore committing log files
 **/log.txt
+
+# Ignore machine learning outputs
+processing/ml/models/**
