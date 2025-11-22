@@ -1,7 +1,6 @@
 # spark-airflow-redis-pipeline
 ## TODO: DELETE LATER
 - Airflow DAG to run every 4 seconds (instead of 1 minute). Currently, using CRON syntax so one minute is as granular as it gets.
-  - Then if files 3 comes in, the output should be a csv file inside data/processed/3 for just day 3.
 - Figure out a logic to read new processed files for train.py
 
 ## SENG 550 Assignment 3
@@ -76,7 +75,7 @@ docker exec -it spark-master \
   /opt/mnt/processing/incremental/incremental_aggregation.py
 ```
 
-The output CSV file appears in `data/processed/`, but Spark writes ugly filenames. This is fine. In addition to the output CSV file, a log file named `log.txt` is updated every time the incremental data aggregation is run.
+The output CSV file appears in `data/processed/#/`, but Spark writes ugly filenames. This is fine. In addition to the output CSV file, a log file named `log.txt` is written to `data/processed/` and updated every time the incremental data aggregation is run.
 
 
 ### Scheduling Incremental Data Aggregation Using Airflow
