@@ -1,9 +1,8 @@
 # spark-airflow-redis-pipeline
 ## TODO: DELETE LATER
 - Airflow DAG to run every 4 seconds (instead of 1 minute). Currently, using CRON syntax so one minute is as granular as it gets.
-- Make incremental_aggregation.py create separate folders for each processed item named after start day key in redis
-  - If files for day 0, 1, 2 are in the data/incremental/raw folder, the output should be a single csv file inside data/processed/0 containing aggregation day 0, 1, 2 combined
   - Then if files 3 comes in, the output should be a csv file inside data/processed/3 for just day 3.
+- Figure out a logic to read new processed files for train.py
 
 ## SENG 550 Assignment 3
 ### Members:

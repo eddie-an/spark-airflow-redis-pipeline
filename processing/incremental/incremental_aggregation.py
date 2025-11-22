@@ -22,7 +22,7 @@ def main():
 
     # Directories
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    output_path = os.path.join(BASE_DIR, "../../data/processed")
+    output_path = os.path.join(BASE_DIR, f"../../data/processed/{start_day}")
     csv_path = os.path.join(BASE_DIR, f'../../data/incremental/raw/{start_day}/orders_{start_day}.csv')
 
     # Make sure the output directory exists (Spark won't overwrite unless you tell it)
