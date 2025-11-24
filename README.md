@@ -58,7 +58,7 @@ docker exec -it spark-master \
 The output CSV file appears in `data/processed/`, but Spark writes ugly filenames. Make sure to rename it to `orders.csv`.
 
 ## Part 2
-Since daily data arrival will be simulated to perform incremental aggregation, create folders (only the following three) and copy the raw data from part 1. Make sure the file names are `orders_0.csv`, `orders_1.csv`, and `orders_2.csv`.
+Since daily data arrival will be simulated to perform incremental aggregation, create folders (only the following three) and copy the raw data in `data/raw` directory from part 0. Make sure the file names are `orders_0.csv`, `orders_1.csv`, and `orders_2.csv`.
 - data/incremental/raw/0/
 - data/incremental/raw/1/
 - data/incremental/raw/2/
