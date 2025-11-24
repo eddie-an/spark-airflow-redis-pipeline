@@ -22,6 +22,12 @@ ENV PATH="${SPARK_HOME}/bin:${PATH}"
 # Fix permissions so airflow user can run Spark
 RUN chown -R airflow:root /opt/spark /usr/lib/jvm
 
+# Copy startup script into the container
+COPY startup.sh /opt/airflow/startup.sh
+
+# Set execute permissions for the script
+RUN chmod a+x /opt/airflow/startup.sh
+
 USER airflow
 
 COPY requirements.txt /requirements.txt

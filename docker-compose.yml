@@ -68,7 +68,6 @@ services:
       - ./airflow/dags:/opt/airflow/dags
       - ./airflow/logs:/opt/airflow/logs
       - ./airflow/plugins:/opt/airflow/plugins
-      - ./airflow/startup.sh:/opt/airflow/startup.sh
       - ./processing:/opt/mnt/processing
       - ./data:/opt/mnt/data
     ports:
