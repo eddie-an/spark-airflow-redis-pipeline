@@ -1,7 +1,4 @@
 # spark-airflow-redis-pipeline
-## TODO: DELETE LATER
-- Airflow DAG to run every 4 seconds (instead of 1 minute). Currently, using CRON syntax so one minute is as granular as it gets.
-
 ## SENG 550 Assignment 3
 ### Members:
 - Edward An UCID: 30142179
@@ -16,6 +13,12 @@ The file [`full_aggregation.py`](/processing/full/full_aggregation.py) uses Spar
 
 #### Part 2
 The file [`incremental_aggregation.py`](/processing/incremental/incremental_aggregation.py) does the same thing as part 1 except it only reads the unprocessed folders (new days) each time it runs. It keeps track of a key, named `processed_day` stored in Redis to determine which files should be aggregated. The key is updated each time the aggregation is run. Similar to part 1, the output CSV file is also stored in the `data/processed` folder. The [`incremental_aggregation_dag.py`](/airflow/dags/incremental_aggregation_dag.py) file is used to run the aggregation on a schedule.
+
+#### Part 3
+- [`train.py`](/processing/ml/train.py)
+- [`ml_dag.py`](/airflow/dags/ml_dag.py)
+- [`inference.py`](/processing/ml/inference.py)
+
 
 # How to run the pipeline
 Run the following command in the directory containing `docker-compose.yml` to configure Redis, Apache Spark, and Airflow in Docker containers,
@@ -96,7 +99,7 @@ dag_id                  | fileloc                                          | own
 incremental_aggregation | /opt/airflow/dags/incremental_aggregation_dag.py | airflow | True     
 ```
 
-Every Airflow script located inside the `/opt/airflow/dags` folder is listed as an Airflow DAG by default. Airflow pauses new DAGs by default, so you must unpause it before it will run.
+Every Airflow script located inside the `/opt/airflow/dags` folder within Docker container is listed as an Airflow DAG by default. Airflow pauses new DAGs by default, so you must unpause it before it will run.
 
 To unpause the Airflow DAG, simply run the following command.
 ```bash
@@ -152,3 +155,30 @@ del processed_day
 Note that if the `processed_day` key is deleted, the aggregation will run on ALL the CSV files inside the incremental/raw folders. Essentially, when Redis is cleared, the system reprocesses everything from scratch.
 
 To escape the redis-cli and/or the Redis Docker container, run `exit` in the shell.
+
+
+## Part 3
+The Spark ML Random Forest model is trained on the processed dataset located in the `data/processed` folder. The model is trained on every dataset inside every csv file in the folder each time it is run. The input features are `day_of_week`, `hour_of_day`, and `category` and the target feature is the `total_count`.
+
+The model training can be done manually or the Airflow DAG can be used to schedule the training. This README will cover both methods.
+
+### Manually Running Model Training
+After completing Part 2, run the following command to manually run model training:
+
+```bash
+docker exec -it spark-master \
+  /opt/spark/bin/spark-submit \
+  /opt/mnt/processing/ml/train.py
+```
+
+The machine learning model files appear in the `processing/ml/models` directory.
+
+These files will be used for prediction later.
+
+
+### Scheduling Model Training Using Airflow
+Refer to the following section: [Scheduling Incremental Data Aggregation Using Airflow](#Scheduling-Incremental-Data-Aggregation-Using-Airflow). The process is essentially the same, except the dag id is changed to `machine_learning_training`.
+
+
+The prediction is 
+## Part 4
