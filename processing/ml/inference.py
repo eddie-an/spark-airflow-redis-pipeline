@@ -54,4 +54,8 @@ input_df = assembler.transform(input_df)
 prediction_df = rf_model.transform(input_df)
 
 pred = prediction_df.select("prediction").collect()[0][0]
-print(f"Predicted number of items: {pred}")
+print(f"Predicted number of items: {round(pred)}")
+
+
+with open(f'{BASE_DIR}/output.txt', "a") as logFile:
+    logFile.write(f"Predicted number of items for day_of_week: {day_of_week}, hour_of_day: {hour_of_day}, category: {category} is {round(pred)}")
