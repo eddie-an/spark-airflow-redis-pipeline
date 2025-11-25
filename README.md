@@ -1,4 +1,9 @@
 # spark-airflow-redis-pipeline
+## TODO:
+* Figure out what to do in part 3 and 4.
+* Verify that we processed the data correctly (90% sure that we did)
+* Develop an Airflow DAG for inference_cached.py
+
 ## SENG 550 Assignment 3
 ### Members:
 - Edward An UCID: 30142179
@@ -206,11 +211,11 @@ docker exec -it spark-master \
   /opt/mnt/processing/ml/inference.py <day_of_week> <hour_of_day> <category>
 ```
 
-\* *Notice the 3 command line arguments above (day of week, hour of day, category)*
+\* *Notice the 3 command line arguments above (day of week, hour of day, category). Make sure to replace it with actual parameters such as `/opt/.../ml/inference.py 0 8 "fresh vegetables"`*
 
 The predictions are written to a txt file named `output.txt` and stored in the `processing/ml` directory.
 
 ## Part 4
 Passing thousands of inputs through a ML learning model for prediction can be quite slow. The `inference_cached.py` file speeds up the prediction process by using Redis to store the predictions. 
 
-So the key,value pair in redis would be key: day_of_week:hour_of_day:category and the value would be the predicted number of items.
+So the key, value pair in redis would be key: `day_of_week:hour_of_day:category` and the value would be the `predicted number of items`.
