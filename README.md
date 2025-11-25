@@ -90,6 +90,8 @@ There are two ways to schedule Airflow DAG.
 - Command Line Interface
 - Graphical User Interface
 
+---
+
 #### Command Line Interface
 Run the shell inside the Airflow container in Docker with the following command:
 ```bash
@@ -112,6 +114,8 @@ airflow dags unpause incremental_aggregation
 ```
 
 Now the `incremental_aggregation.py` script should be run on a schedule.
+
+---
 
 #### Graphical User Interface
 Go to [localhost:8085](http://localhost:8085/)
