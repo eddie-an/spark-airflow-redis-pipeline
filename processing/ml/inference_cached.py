@@ -27,13 +27,13 @@ def main():
     if exists == 0:
         prediction = machineLearningInference(day_of_week, hour_of_day, category)
         r.set(redisKey, prediction)
-        with open(f'{BASE_DIR}/output.txt', "a") as logFile:
-            logFile.write(f"[Ran ML prediction] Predicted number of items for day_of_week: {day_of_week}, hour_of_day: {hour_of_day}, category: {category} is {round(prediction)}\n")
+        with open(f'{BASE_DIR}/output.txt', "a") as outputFile:
+            outputFile.write(f"[Ran ML prediction] Predicted number of items for day_of_week: {day_of_week}, hour_of_day: {hour_of_day}, category: {category} is {round(prediction)}\n")
 
     else:
         prediction = (float) (r.get(redisKey))
-        with open(f'{BASE_DIR}/output.txt', "a") as logFile:
-            logFile.write(f"[Retrieved from Redis] Predicted number of items for day_of_week: {day_of_week}, hour_of_day: {hour_of_day}, category: {category} is {round(prediction)}\n")
+        with open(f'{BASE_DIR}/output.txt', "a") as outputFile:
+            outputFile.write(f"[Retrieved from Redis] Predicted number of items for day_of_week: {day_of_week}, hour_of_day: {hour_of_day}, category: {category} is {round(prediction)}\n")
     
     print(f"Predicted number of items: {round(prediction)}")
 
