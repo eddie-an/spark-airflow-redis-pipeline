@@ -58,4 +58,4 @@ print(f"Predicted number of items: {round(pred)}")
 
 
 with open(f'{BASE_DIR}/output.txt', "a") as logFile:
-    logFile.write(f"Predicted number of items for day_of_week: {day_of_week}, hour_of_day: {hour_of_day}, category: {category} is {round(pred)}\n")
+    logFile.write(f"[Ran ML prediction] Predicted number of items for day_of_week: {day_of_week}, hour_of_day: {hour_of_day}, category: {category} is {round(pred)}\n")

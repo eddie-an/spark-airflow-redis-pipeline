@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.providers.standard.operators.bash import BashOperator
 
-# DAG runs every 4 seconds (minimum practical interval is 1 second)
+# DAG runs every 4 seconds
 with DAG(
     'incremental_aggregation',
     description='Run Spark incremental aggregation job',

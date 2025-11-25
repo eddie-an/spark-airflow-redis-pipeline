@@ -16,17 +16,22 @@ The file [`incremental_aggregation.py`](/processing/incremental/incremental_aggr
 
 #### Part 3
 - [`train.py`](/processing/ml/train.py)
-- [`ml_dag.py`](/airflow/dags/ml_dag.py)
+- [`train_dag.py`](/airflow/dags/train_dag.py)
 - [`inference.py`](/processing/ml/inference.py)
+
+#### Part 4
+- [`inference_cached.py`](/processing/ml/inference_cached.py)
 
 
 # How to run the pipeline
+Before running the data processing pipeline, make sure to have Docker installed on the local machine. All other dependencies such as Apache Spark, Apache Airflow, and Redis will be handled within Docker containers. The only thing you need is Docker.
+
 Run the following command in the directory containing `docker-compose.yml` to configure Redis, Apache Spark, and Airflow in Docker containers,
 ```bash
 docker compose up -d
 ```
 
-If any changes have been made to the `docker-compose.yml` file, run the following command:
+\* If any changes have been made to the `docker-compose.yml` file, run the following command:
 ```bash
 docker compose down
 ```
@@ -124,6 +129,10 @@ You will be prompted to a home page as shown below:
 Click on the button located on the left of the DAG name to pause/unpause the DAG.
 ![Pause/Unpause DAG](/assets/Airflow_unpause_DAG.png)
 
+Once the incremental_aggregation DAG has been unpaused, the aggregation will run every 4 seconds as specified in the `incremental_aggregation_dag.py` file.
+
+---
+
 ### Inspecting Redis Cache Contents
 After running the incremental data aggregation either manually or automatically using a schedule, we can verify that data has been written to Redis.
 
@@ -158,7 +167,8 @@ To escape the redis-cli and/or the Redis Docker container, run `exit` in the she
 
 
 ## Part 3
-The Spark ML Random Forest model is trained on the processed dataset located in the `data/processed` folder. The model is trained on every dataset inside every csv file in the folder each time it is run. The input features are `day_of_week`, `hour_of_day`, and `category` and the target feature is the `total_count`.
+The Spark Machine Learning Random Forest model is trained on all the processed CSV datasets located in the `data/processed` folder. So as the more data comes in, the aggregation part adds it to the aggregation results and the
+model will use it to be a more accurate model. The input features are `day_of_week`, `hour_of_day`, and `category` and the target feature is the `total_count`.
 
 The model training can be done manually or the Airflow DAG can be used to schedule the training. This README will cover both methods.
 
@@ -177,8 +187,26 @@ These files will be used for prediction later.
 
 
 ### Scheduling Model Training Using Airflow
-Refer to the following section: [Scheduling Incremental Data Aggregation Using Airflow](#Scheduling-Incremental-Data-Aggregation-Using-Airflow). The process is essentially the same, except the dag id is changed to `machine_learning_training`.
+Refer to the following section: [Scheduling Incremental Data Aggregation Using Airflow](#Scheduling-Incremental-Data-Aggregation-Using-Airflow). The process is essentially the same, except the DAG id is changed to `machine_learning_training`. 
 
+After the Airflow DAG is unpaused, the machine learning model will be trained every 20 seconds as defined inside the `train_dag.py` file. As more data is processed through scheduled incremental aggregation in Part 2, each iteration of the model will become more accurate.
 
-The prediction is 
+---
+
+### Running Predictions Using Machine Learning Model
+After the model has been trained, it can be used to predict the number of items in an order based on the day of week, hour of day, and category. The `inference.py` file does exactly this. Run the following command to run the prediction:
+
+```bash
+docker exec -it spark-master \
+  /opt/spark/bin/spark-submit \
+  /opt/mnt/processing/ml/inference.py <day_of_week> <hour_of_day> <category>
+```
+
+\* *Notice the 3 command line arguments above (day of week, hour of day, category)*
+
+The predictions are written to a txt file named `output.txt` and stored in the `processing/ml` directory.
+
 ## Part 4
+Passing thousands of inputs through a ML learning model for prediction can be quite slow. The `inference_cached.py` file speeds up the prediction process by using Redis to store the predictions. 
+
+So the key,value pair in redis would be key: day_of_week:hour_of_day:category and the value would be the predicted number of items.

@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.providers.standard.operators.bash import BashOperator
 
-# DAG runs every 4 seconds (minimum practical interval is 1 second)
+# DAG runs every 4 seconds
 with DAG(
     'machine_learning_training',
     description='Run Spark ml training job',
