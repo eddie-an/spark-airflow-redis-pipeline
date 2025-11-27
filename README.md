@@ -1,9 +1,4 @@
 # spark-airflow-redis-pipeline
-## TODO:
-* Figure out what to do in part 3 and 4.
-* Verify that we processed the data correctly (90% sure that we did)
-* Develop an Airflow DAG for inference_cached.py
-
 ## SENG 550 Assignment 3
 ### Members:
 - Edward An UCID: 30142179
