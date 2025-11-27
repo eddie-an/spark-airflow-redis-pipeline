@@ -2,6 +2,7 @@
 ## TODO:
 - Output a log txt file for ml training DAG. Show what csv file it has been trained on and the time it has ran
 - Output a log txt file for ml inference DAG. Show the time it has ran
+- If there is no models/ folder, inference.py and inference_cached.py should quit early
 ## SENG 550 Assignment 3
 ### Members:
 - Edward An UCID: 30142179
