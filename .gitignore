@@ -37,3 +37,4 @@ airflow/logs/
 # Ignore machine learning outputs
 processing/ml/models/**
 **/output.txt
+processing/ml/test_set/**

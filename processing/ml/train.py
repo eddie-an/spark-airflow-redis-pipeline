@@ -14,21 +14,22 @@ def main():
     end_day = 6
 
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    csv_path = os.path.join(BASE_DIR, f'../../data/processed/{start_day}/*.csv')
+    input_csv_path = os.path.join(BASE_DIR, f'../../data/processed/{start_day}/*.csv')
+    test_csv_path = os.path.join(BASE_DIR, "test_set")
 
 
     df = None
-    if glob.glob(csv_path): # If there are .csv files inside the csv_path folder then create DataFrame
-        df = spark.read.csv(csv_path, header=True, sep=",")
+    if glob.glob(input_csv_path): # If there are .csv files inside the csv_path folder then create DataFrame
+        df = spark.read.csv(input_csv_path, header=True, sep=",")
         print("combined day 0 file")
 
 
     for i in range(start_day+1, end_day+1):
-        csv_path = os.path.join(BASE_DIR, f'../../data/processed/{i}/*.csv')
-        if not glob.glob(csv_path): # If path doesn't exist, just skip it
+        input_csv_path = os.path.join(BASE_DIR, f'../../data/processed/{i}/*.csv')
+        if not glob.glob(input_csv_path): # If path doesn't exist, just skip it
             continue
         
-        df_new = spark.read.csv(csv_path, header=True, sep=",")
+        df_new = spark.read.csv(input_csv_path, header=True, sep=",")
 
         if df is None:
             df = df_new
@@ -41,6 +42,12 @@ def main():
     
     # Train Test Data Split
     train_df, test_df = df.randomSplit([0.9, 0.1], seed=42)
+
+    # Make sure the output directory exists (Spark won't overwrite unless you tell it)
+    os.makedirs(test_csv_path, exist_ok=True)
+
+    # Save each DataFrame as a CSV
+    df.coalesce(1).write.mode("overwrite").csv(f"{test_csv_path}", header=True)
 
     # Assigns an arbitrary number to each category type
     indexer = StringIndexer(inputCol="category", outputCol="cat_idx")
