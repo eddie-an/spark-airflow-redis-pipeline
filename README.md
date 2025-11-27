@@ -177,7 +177,7 @@ To escape the redis-cli and/or the Redis Docker container, run `exit` in the she
 
 ## Part 3
 The Spark Machine Learning Random Forest model is trained on all the processed CSV datasets located in the `data/processed` folder. So as the more data comes in, the aggregation part adds it to the aggregation results and the
-model will use it to be a more accurate model. The input features are `day_of_week`, `hour_of_day`, and `category` and the target feature is the `total_count`.
+model will use it to be a more accurate model. The input features are `day_of_week`, `hour_of_day`, and `category` and the target feature is the `total_count`. The model uses a 90/10 split to use 90% of the dataset for training and 10% of the dataset for testing. The test set is then saved as a csv file to the `processing/ml/test_set` directory, and it will be used for making predictions.
 
 The model training can be done manually or the Airflow DAG can be used to schedule the training. This README will cover both methods.
 
@@ -203,19 +203,84 @@ After the Airflow DAG is unpaused, the machine learning model will be trained ev
 ---
 
 ### Running Predictions Using Machine Learning Model
-After the model has been trained, it can be used to predict the number of items in an order based on the day of week, hour of day, and category. The `inference.py` file does exactly this. Run the following command to run the prediction:
+After the model has been trained, it can be used to predict the number of items in an order based on the day of week, hour of day, and category. The `inference.py` file does exactly this. The prediction is run on the test set created earlier from training. Run the following command to run the prediction:
 
 ```bash
 docker exec -it spark-master \
   /opt/spark/bin/spark-submit \
-  /opt/mnt/processing/ml/inference.py <day_of_week> <hour_of_day> <category>
+  /opt/mnt/processing/ml/inference.py
 ```
 
-\* *Notice the 3 command line arguments above (day of week, hour of day, category). Make sure to replace it with actual parameters such as `/opt/.../ml/inference.py 0 8 "fresh vegetables"`*
-
-The predictions are written to a txt file named `output.txt` and stored in the `processing/ml` directory.
+The predictions are written to a csv file stored in the `processing/ml/prediction` directory.
 
 ## Part 4
-Passing thousands of inputs through a ML learning model for prediction can be quite slow. The `inference_cached.py` file speeds up the prediction process by using Redis to store the predictions. 
+Passing thousands of inputs through a ML learning model for prediction can be quite slow. The `inference_cached.py` file speeds up the prediction process by using Redis to store the predictions.
 
-So the key, value pair in redis would be key: `day_of_week:hour_of_day:category` and the value would be the `predicted number of items`.
+The key would be stored in the format of `day_of_week:hour_of_day:category` and the value would be the `predicted number of items`.
+
+The model prediction can be done manually or the Airflow DAG can be used to schedule the training. This README will cover both methods.
+
+### Manually Running Model Prediction
+Run the following command to run the prediction:
+
+```bash
+docker exec -it spark-master \
+  /opt/spark/bin/spark-submit \
+  /opt/mnt/processing/ml/inference_cached.py
+```
+
+The predictions are written to a csv file stored in the `processing/ml/prediction` directory.
+
+
+### Scheduling Model Prediction Using Airflow
+Refer to the following section: [Scheduling Incremental Data Aggregation Using Airflow](#Scheduling-Incremental-Data-Aggregation-Using-Airflow). The process is essentially the same, except the DAG id is changed to `machine_learning_prediction`. 
+
+After the Airflow DAG is unpaused, the prediction will run on the test set every 20 seconds as defined inside the `predict_dag.py` file. As the model is trained on a schedule in part 3, the predictions will become more accurate over time. The new predictions will replace the old predictions stored inside Redis so that the prediction is up to date.
+
+---
+
+### Inspecting Redis Cache Contents (Again)
+After running the cached implementation of inference either manually or automatically using a schedule, we can verify that data has been written to Redis.
+
+To run the shell inside Redis container in Docker, run the following:
+```bash
+docker exec -it redis /bin/bash
+```
+
+Once inside the Redis container in Docker, run the `redis-cli` command to interact with Redis.
+```bash
+redis-cli
+```
+
+The `keys *` command can be used in redis-cli to see all keys stored in Redis.
+```bash
+keys *
+```
+The output will look something like this:
+```bash
+10367) "1:9:prepared meals"
+10368) "6:18:vitamins supplements"
+10369) "1:12:preserved dips spreads"
+10370) "0:16:fresh dips tapenades"
+10371) "0:5:spreads"
+10372) "0:13:cereal"
+10373) "4:14:ice cream ice"
+10374) "0:9:crackers"
+10375) "4:7:frozen pizza"
+10376) "0:10:popcorn jerky"
+10377) "4:20:hot dogs bacon sausage"
+10378) "1:14:tea"
+10379) "4:8:ice cream ice"
+10380) "1:12:fresh vegetables"
+10381) "0:15:meat counter"
+```
+
+The `get` command can be used in redis-cli to see the value of any of the keys in Redis.
+
+For example:
+```bash
+127.0.0.1:6379> get 4:7:"frozen pizza"
+"1"
+```
+
+To escape the redis-cli and/or the Redis Docker container, run `exit` in the shell.
