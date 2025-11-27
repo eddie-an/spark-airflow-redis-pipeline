@@ -8,63 +8,34 @@ import redis
 
 
 def main():
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-    # CLI args: day_of_week, hour_of_day, category
-    if len(sys.argv) != 4:
-        print("Usage: python inference.py <day_of_week> <hour_of_day> <category>")
-        sys.exit(1)
-
-    day_of_week = int(sys.argv[1])
-    hour_of_day = int(sys.argv[2])
-    category = sys.argv[3]
-    redisKey = f"{day_of_week}:{hour_of_day}:{category}"
-
-    r = redis.Redis(host='redis', port=6379, db=0)
-    exists = r.exists(redisKey)
-    
-    prediction = None
-    if exists == 0:
-        prediction = machineLearningInference(day_of_week, hour_of_day, category)
-        r.set(redisKey, prediction)
-        with open(f'{BASE_DIR}/output.txt', "a") as outputFile:
-            outputFile.write(f"[Ran ML prediction] Predicted number of items for day_of_week: {day_of_week}, hour_of_day: {hour_of_day}, category: {category} is {round(prediction)}\n")
-
-    else:
-        prediction = (float) (r.get(redisKey))
-        with open(f'{BASE_DIR}/output.txt', "a") as outputFile:
-            outputFile.write(f"[Retrieved from Redis] Predicted number of items for day_of_week: {day_of_week}, hour_of_day: {hour_of_day}, category: {category} is {round(prediction)}\n")
-    
-    print(f"Predicted number of items: {round(prediction)}")
-
-
-
-def machineLearningInference(day_of_week, hour_of_day, category):
     spark = SparkSession.builder.master("local[*]").getOrCreate()
 
-    # Load saved models from train.py
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+    # Load saved models from train.py
     MODEL_DIR = os.path.join(BASE_DIR, "models")
+    TEST_DIR = os.path.join(BASE_DIR, "test_set/*.csv")
+
+
     rf_model_path = os.path.join(MODEL_DIR, "rf_model")
     indexer_path = os.path.join(MODEL_DIR, "indexer")
     encoder_path = os.path.join(MODEL_DIR, "encoder")
-    
+    prediction_csv_path = os.path.join(BASE_DIR, "prediction")
+
     rf_model = RandomForestRegressionModel.load(rf_model_path)
     indexer = StringIndexerModel.load(indexer_path)
     encoder = OneHotEncoderModel.load(encoder_path)
-    
-    # Create a single-row Spark DataFrame
-    input_df = spark.createDataFrame(
-        [(day_of_week, hour_of_day, category)],
-        ["order_dow", "order_hour_of_day", "category"]
-    )
+
+
+    test_df = spark.read.csv(TEST_DIR, header=True, sep=",")
+
 
     # Apply the saved indexer + encoder to match train.py
-    input_df = indexer.transform(input_df)
-    input_df = input_df.withColumn("order_dow", input_df["order_dow"].cast("integer"))
-    input_df = input_df.withColumn("order_hour_of_day", input_df["order_hour_of_day"].cast("integer"))
+    test_df = indexer.transform(test_df)
+    test_df = test_df.withColumn("order_dow", test_df["order_dow"].cast("integer"))
+    test_df = test_df.withColumn("order_hour_of_day", test_df["order_hour_of_day"].cast("integer"))
 
-    input_df = encoder.transform(input_df)
+    test_df = encoder.transform(test_df)
 
     # Rebuild the feature vector
     assembler = VectorAssembler(
@@ -72,13 +43,36 @@ def machineLearningInference(day_of_week, hour_of_day, category):
         outputCol="features"
     )
 
-    input_df = assembler.transform(input_df)
+    test_df = assembler.transform(test_df)
 
     # Run prediction
-    prediction_df = rf_model.transform(input_df)
+    prediction_df = rf_model.transform(test_df)
+    prediction_df = prediction_df.drop("cat_idx").drop("cat_vec").drop("features")
+    prediction_df = prediction_df.withColumn(
+        "prediction",
+        F.round(F.col("prediction")).cast("int")
+    )
+    os.makedirs(prediction_csv_path, exist_ok=True)
 
-    pred = prediction_df.select("prediction").collect()[0][0]
-    return pred
+    # Save each DataFrame as a CSV
+    prediction_df.coalesce(1).write.mode("overwrite").csv(f"{prediction_csv_path}", header=True)
+    prediction_df.rdd.mapPartitions(write_partition).collect()
+    
+
+def write_partition(partition):
+    # Create a Redis client inside each executor
+    r = redis.Redis(host='redis', port=6379, db=0)
+
+    for row in partition:
+        row = row.asDict()
+        key = f"{row['order_dow']}:{row['order_hour_of_day']}:{row['category']}"
+        value = row['prediction']
+
+        r.set(key, value)
+
+    # Return nothing, Spark just wants an iterator
+    return iter([])
+
 
 
 if __name__== "__main__":

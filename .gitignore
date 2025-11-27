@@ -38,3 +38,4 @@ airflow/logs/
 processing/ml/models/**
 **/output.txt
 processing/ml/test_set/**
+processing/ml/prediction/**
