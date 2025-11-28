@@ -20,7 +20,7 @@ Implements incremental aggregation so only new day folders are processed.
 
 - [`incremental_aggregation.py`](/processing/incremental/incremental_aggregation.py) reads unprocessed day folders, aggregates them, appends the results, and updates the processed_day key in Redis.
 
-- [`incremental_aggregation_dag.py`](/airflow/dags/incremental_aggregation_dag.py) is an Airflow DAG that schedules incremental processing.
+- [`incremental_aggregation_dag.py`](/airflow/dags/incremental_aggregation_dag.py) is an Airflow DAG that schedules incremental processing to run every 4 seconds.
 
 #### Part 3
 The machine learning pipeline lives here. This part trains a Random Forest regression model using the fully aggregated dataset and runs inference on the test split.
@@ -121,10 +121,12 @@ docker exec -it airflow /bin/bash
 
 Once inside the Airflow container in Docker, run the `airflow dags list` command to see all the airflow dags
 ```bash
-airflow@53789362447e:/opt/mnt/data$ airflow dags list
-dag_id                  | fileloc                                          | owners  | is_paused
-========================+==================================================+=========+==========
-incremental_aggregation | /opt/airflow/dags/incremental_aggregation_dag.py | airflow | True     
+airflow@535cf7bc2b33:/opt/airflow$ airflow dags list
+dag_id                      | fileloc                                          | owners  | is_paused
+============================+==================================================+=========+==========
+incremental_aggregation     | /opt/airflow/dags/incremental_aggregation_dag.py | airflow | False    
+machine_learning_prediction | /opt/airflow/dags/predict_dag.py                 | airflow | True     
+machine_learning_training   | /opt/airflow/dags/train_dag.py                   | airflow | True  
 ```
 
 Every Airflow script located inside the `/opt/airflow/dags` folder within Docker container is listed as an Airflow DAG by default. Airflow pauses new DAGs by default, so you must unpause it before it will run.
