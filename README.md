@@ -39,8 +39,8 @@ This part optimizes inference by caching predictions inside Redis, so machine le
 # Directory Layout
 ```
 data/
-├── raw/ <-- this will be created once commands are run
-├── processed/ <-- this will be created once commands are run
+├── raw/ # Created automatically after running Part 0
+├── processed/ # Created automatically after running Part 1 and 2
 processing/
 ├── full/
 ├── incremental/
