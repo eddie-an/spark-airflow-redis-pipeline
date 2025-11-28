@@ -46,6 +46,11 @@ def processCSV(df):
         "order_hour_of_day",
         expr(f"stack({len(category_columns)}, {stack_expr}) as (category, items)")
     ).filter("items > 0")
+
+    # Aggregate to remove duplicates
+    df_final = df_final.groupBy(
+        "order_dow", "order_hour_of_day", "category"
+    ).agg(sum("items").cast("int").alias("items"))
     return df_final
 
 def saveCSV(df, path):

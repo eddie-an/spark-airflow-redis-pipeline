@@ -1,7 +1,4 @@
 # spark-airflow-redis-pipeline
-## TODO:
-- Output a log txt file for ml inference DAG. Show the time it has ran
-- If there is no models/ folder, inference.py and inference_cached.py should quit early
 ## SENG 550 Assignment 3
 ### Members:
 - Edward An UCID: 30142179
@@ -9,22 +6,48 @@
 
 # Files
 #### Part 0
-The file [`split.py`](/data/split.py) uses Spark to partition the [`orders.csv`](/data/orders.csv) data by the day of week (order_dow) column into 7 separate CSV files and store them in `data/raw` folder.
+Splits the original dataset by order_dow so each day of the week gets its own CSV.
+
+- [`split.py`](/data/split.py) reads [`orders.csv`](/data/orders.csv) and writes 7 separate day-based files into `data/raw/#` folder.
 
 #### Part 1
-The file [`full_aggregation.py`](/processing/full/full_aggregation.py) uses Spark to process the 7 raw data files created in part 0 of the assignment. To be specific, Spark is used to aggregate the order data into a smaller dataset showing the number of items sold for each category, grouped by day of week and hour of day. The output CSV file is then stored in the `data/processed` folder.
+Runs the full aggregation over all 7 raw day files.
+- [`full_aggregation.py`](/processing/full/full_aggregation.py) uses Spark to compute total items sold per `(day_of_week, hour_of_day, category)` and writes the results to `data/processed` folder.
+
 
 #### Part 2
-The file [`incremental_aggregation.py`](/processing/incremental/incremental_aggregation.py) does the same thing as part 1 except it only reads the unprocessed folders (new days) each time it runs. It keeps track of a key, named `processed_day` stored in Redis to determine which files should be aggregated. The key is updated each time the aggregation is run. Similar to part 1, the output CSV file is also stored in the `data/processed` folder. The [`incremental_aggregation_dag.py`](/airflow/dags/incremental_aggregation_dag.py) file is used to run the aggregation on a schedule.
+Implements incremental aggregation so only new day folders are processed.
+
+- [`incremental_aggregation.py`](/processing/incremental/incremental_aggregation.py) reads unprocessed day folders, aggregates them, appends the results, and updates the processed_day key in Redis.
+
+- [`incremental_aggregation_dag.py`](/airflow/dags/incremental_aggregation_dag.py) is an Airflow DAG that schedules incremental processing.
 
 #### Part 3
-- [`train.py`](/processing/ml/train.py)
-- [`train_dag.py`](/airflow/dags/train_dag.py)
-- [`inference.py`](/processing/ml/inference.py)
+The machine learning pipeline lives here. This part trains a Random Forest regression model using the fully aggregated dataset and runs inference on the test split.
+
+- [`train.py`](/processing/ml/train.py) trains the ML model using Spark ML and outputs the model files & test set.
+- [`train_dag.py`](/airflow/dags/train_dag.py) is an Airflow DAG that retrains the model every 20 seconds.
+- [`inference.py`](/processing/ml/inference.py) runs predictions on the test set produced by training and writes them out as a CSV.
 
 #### Part 4
-- [`inference_cached.py`](/processing/ml/inference_cached.py)
+This part optimizes inference by caching predictions inside Redis, so machine learning predictions are stored in cache.
 
+- [`inference_cached.py`](/processing/ml/inference_cached.py) generates all predictions using the trained model and stores them in Redis using the key-value pair of  (`day_of_week:hour_of_day:category`,`prediction`).
+- [`predict_dag.py`](/airflow/dags/predict_dag.py) is an Airflow DAG that runs the cached prediction job on a schedule (every 20 seconds).
+
+
+# Directory Layout
+```
+data/
+├── raw/ <-- this will be created once commands are run
+├── processed/ <-- this will be created once commands are run
+processing/
+├── full/
+├── incremental/
+└── ml/
+airflow/
+└── dags/
+```
 
 # How to run the pipeline
 Before running the data processing pipeline, make sure to have Docker installed on the local machine. All other dependencies such as Apache Spark, Apache Airflow, and Redis will be handled within Docker containers. The only thing you need is Docker.
@@ -49,12 +72,7 @@ docker exec -it spark-master \
   /opt/mnt/data/split.py
 ```
 
-The output CSV files appears in `data/raw/`, but Spark writes ugly filenames. Rename them to match the assignment requirements.
-In each data/raw/`#`/file_name.csv, rename it to data/raw/`#`/orders_`#`.csv. 
-
-So for example, `data/raw/0/part-0000-8b39fdsf.csv` should be renamed to `data/raw/0/orders_0.csv`.
-
-If the CSV files are not renamed, there will be issues with running the next parts.
+The output CSV files appears in `data/raw/#`.
 
 ## Part 1
 
@@ -66,7 +84,7 @@ docker exec -it spark-master \
   /opt/mnt/processing/full/full_aggregation.py
 ```
 
-The output CSV file appears in `data/processed/`, but Spark writes ugly filenames. Make sure to rename it to `orders.csv`.
+The output CSV file appears in `data/processed/`.
 
 ## Part 2
 Since daily data arrival will be simulated to perform incremental aggregation, create folders (only the following three) and copy the raw data in `data/raw` directory from part 0. Make sure the file names are `orders_0.csv`, `orders_1.csv`, and `orders_2.csv`.
@@ -85,7 +103,7 @@ docker exec -it spark-master \
   /opt/mnt/processing/incremental/incremental_aggregation.py
 ```
 
-The output CSV file appears in `data/processed/#/`, but Spark writes ugly filenames. This is fine. In addition to the output CSV file, a log file named `log.txt` is written to `data/processed/` and updated every time the incremental data aggregation is run.
+The output CSV file appears in `data/processed/#/`. In addition to the output CSV file, a log file named `log.txt` is written to `data/processed/` and updated every time the incremental data aggregation is run.
 
 
 ### Scheduling Incremental Data Aggregation Using Airflow
@@ -188,7 +206,7 @@ docker exec -it spark-master \
   /opt/mnt/processing/ml/train.py
 ```
 
-The machine learning model files appear in the `processing/ml/models` directory.
+The machine learning model files are exported and appear in the `processing/ml/models` directory. The test set can be found in the `processing/ml/test_set` directory.
 
 These files will be used for prediction later.
 
@@ -209,7 +227,26 @@ docker exec -it spark-master \
   /opt/mnt/processing/ml/inference.py
 ```
 
-The predictions are written to a csv file stored in the `processing/ml/prediction` directory.
+The predictions are written to a csv file stored in the `processing/ml/prediction` directory. They are stored in the following format:
+
+```csv
+order_dow,order_hour_of_day,category,items,prediction
+0,0,fresh fruits,8,27
+0,0,fresh vegetables,4,21
+0,1,tortillas flat bread,1,3
+0,10,breakfast bars pastries,1,5
+0,10,energy granola bars,19,5
+0,10,indian foods,1,5
+0,10,packaged meat,3,5
+0,10,packaged poultry,4,5
+0,10,preserved dips spreads,3,5
+0,11,candy chocolate,5,5
+0,11,cleaning products,7,5
+0,11,feminine care,1,5
+0,11,fresh vegetables,149,42
+0,11,hot dogs bacon sausage,13,5
+0,11,muscles joints pain relief,2,5
+```
 
 ## Part 4
 Passing thousands of inputs through a ML learning model for prediction can be quite slow. The `inference_cached.py` file speeds up the prediction process by using Redis to store the predictions.
@@ -256,29 +293,35 @@ keys *
 ```
 The output will look something like this:
 ```bash
-10367) "1:9:prepared meals"
-10368) "6:18:vitamins supplements"
-10369) "1:12:preserved dips spreads"
-10370) "0:16:fresh dips tapenades"
-10371) "0:5:spreads"
-10372) "0:13:cereal"
-10373) "4:14:ice cream ice"
-10374) "0:9:crackers"
-10375) "4:7:frozen pizza"
-10376) "0:10:popcorn jerky"
-10377) "4:20:hot dogs bacon sausage"
-10378) "1:14:tea"
-10379) "4:8:ice cream ice"
-10380) "1:12:fresh vegetables"
-10381) "0:15:meat counter"
+1018) "3:16:spreads"
+1019) "3:8:frozen meals"
+1020) "3:13:tortillas flat bread"
+1021) "4:12:energy granola bars"
+1022) "3:14:crackers"
+1023) "1:11:refrigerated pudding desserts"
+1024) "4:17:frozen meat seafood"
+1025) "4:21:nuts seeds dried fruit"
+1026) "0:16:condiments"
+1027) "4:18:dish detergents"
+1028) "6:19:grains rice dried goods"
+1029) "3:11:frozen produce"
+1030) "5:19:refrigerated"
 ```
 
 The `get` command can be used in redis-cli to see the value of any of the keys in Redis.
 
 For example:
 ```bash
-127.0.0.1:6379> get 4:7:"frozen pizza"
-"1"
+127.0.0.1:6379> get 3:8:"frozen meals"
+"4"
 ```
 
 To escape the redis-cli and/or the Redis Docker container, run `exit` in the shell.
+
+
+# Summary
+This project brings together Spark, Airflow, and Redis to build a full data-processing and prediction pipeline from start to finish. Raw Instacart-style order data is first split by day of week, then fully and incrementally aggregated using Spark. Airflow orchestrates scheduled processing so new data is detected and merged automatically, with Redis keeping track of progress across runs.
+
+A machine learning model is trained on the aggregated dataset using Spark ML, with scheduled retraining to keep predictions up to date as more data arrives. To optimize inference performance, all model predictions are cached in Redis, allowing the system to respond instantly to high-volume prediction requests without repeatedly running the ML model.
+
+Overall, this pipeline demonstrates how batch processing, incremental loading, orchestration, caching, and machine learning can all work together in a scalable, production-style architecture—powered entirely through containerized Spark, Airflow, and Redis services.
