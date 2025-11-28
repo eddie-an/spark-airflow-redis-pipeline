@@ -4,7 +4,9 @@ from pyspark.ml.regression import RandomForestRegressionModel
 import pyspark.sql.functions as F
 import os
 import sys
+import glob
 import redis
+from datetime import datetime
 
 
 def main():
@@ -21,6 +23,14 @@ def main():
     indexer_path = os.path.join(MODEL_DIR, "indexer")
     encoder_path = os.path.join(MODEL_DIR, "encoder")
     prediction_csv_path = os.path.join(BASE_DIR, "prediction")
+
+    if not (os.path.exists(rf_model_path) and os.path.exists(indexer_path) and os.path.exists(encoder_path)):
+        print("Model files not found. Please run train.py first.")
+        sys.exit(1)
+
+    if not glob.glob(TEST_DIR):
+        print("Test set not found. Please ensure test_set CSV files are available.")
+        sys.exit(1)
 
     rf_model = RandomForestRegressionModel.load(rf_model_path)
     indexer = StringIndexerModel.load(indexer_path)
@@ -57,6 +67,10 @@ def main():
     # Save each DataFrame as a CSV
     prediction_df.coalesce(1).write.mode("overwrite").csv(f"{prediction_csv_path}", header=True)
     prediction_df.rdd.mapPartitions(write_partition).collect()
+
+    execution_timestamp = datetime.now()
+    with open(f'{BASE_DIR}/inference_log.txt', "a") as logFile:
+        logFile.write(f"[{execution_timestamp}] Inference output written to {prediction_csv_path} and Redis updated.\n")
     
 
 def write_partition(partition):

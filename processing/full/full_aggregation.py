@@ -3,6 +3,7 @@ from pyspark.sql.functions import *
 from pyspark.sql.types import *
 import os
 import glob
+import sys
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -61,8 +62,8 @@ def main():
     df = loadCSV(csv_path) # Load CSV files
     # If there is nothing to aggregate
     if df is None:
-        print(f"The files don't exist")
-        return
+        print(f"No CSV files found to aggregate in {csv_path}. Exiting.")
+        sys.exit(1)
 
     df_processed = processCSV(df) # Process CSV so that the columns are changed
     saveCSV(df_processed, output_path)

@@ -31,11 +31,10 @@ data/raw/6/*.csv
 airflow/logs/**
 airflow/logs/
 
-# Ignore committing log files
-**/log.txt
+# Ignore committing txt files
+**/*.txt
 
 # Ignore machine learning outputs
 processing/ml/models/**
-**/output.txt
 processing/ml/test_set/**
 processing/ml/prediction/**

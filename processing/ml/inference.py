@@ -3,53 +3,71 @@ from pyspark.ml.feature import StringIndexerModel, OneHotEncoderModel, VectorAss
 from pyspark.ml.regression import RandomForestRegressionModel
 import pyspark.sql.functions as F
 import os
+import glob
 import sys
+from datetime import datetime
 
-spark = SparkSession.builder.master("local[*]").getOrCreate()
+def main():
+    spark = SparkSession.builder.master("local[*]").getOrCreate()
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Load saved models from train.py
-MODEL_DIR = os.path.join(BASE_DIR, "models")
-TEST_DIR = os.path.join(BASE_DIR, "test_set/*.csv")
-
-
-rf_model_path = os.path.join(MODEL_DIR, "rf_model")
-indexer_path = os.path.join(MODEL_DIR, "indexer")
-encoder_path = os.path.join(MODEL_DIR, "encoder")
-prediction_csv_path = os.path.join(BASE_DIR, "prediction")
-
-rf_model = RandomForestRegressionModel.load(rf_model_path)
-indexer = StringIndexerModel.load(indexer_path)
-encoder = OneHotEncoderModel.load(encoder_path)
+    # Load saved models from train.py
+    MODEL_DIR = os.path.join(BASE_DIR, "models")
+    TEST_DIR = os.path.join(BASE_DIR, "test_set/*.csv")
 
 
-test_df = spark.read.csv(TEST_DIR, header=True, sep=",")
+    rf_model_path = os.path.join(MODEL_DIR, "rf_model")
+    indexer_path = os.path.join(MODEL_DIR, "indexer")
+    encoder_path = os.path.join(MODEL_DIR, "encoder")
+    prediction_csv_path = os.path.join(BASE_DIR, "prediction")
+
+    if not (os.path.exists(rf_model_path) and os.path.exists(indexer_path) and os.path.exists(encoder_path)):
+        print("Model files not found. Please run train.py first.")
+        sys.exit(1)
+
+    if not glob.glob(TEST_DIR):
+        print("Test set not found. Please ensure test_set CSV files are available.")
+        sys.exit(1)
+
+    rf_model = RandomForestRegressionModel.load(rf_model_path)
+    indexer = StringIndexerModel.load(indexer_path)
+    encoder = OneHotEncoderModel.load(encoder_path)
 
 
-# Apply the saved indexer + encoder to match train.py
-test_df = indexer.transform(test_df)
-test_df = test_df.withColumn("order_dow", test_df["order_dow"].cast("integer"))
-test_df = test_df.withColumn("order_hour_of_day", test_df["order_hour_of_day"].cast("integer"))
+    test_df = spark.read.csv(TEST_DIR, header=True, sep=",")
 
-test_df = encoder.transform(test_df)
 
-# Rebuild the feature vector
-assembler = VectorAssembler(
-    inputCols=["order_dow", "order_hour_of_day", "cat_vec"],
-    outputCol="features"
-)
+    # Apply the saved indexer + encoder to match train.py
+    test_df = indexer.transform(test_df)
+    test_df = test_df.withColumn("order_dow", test_df["order_dow"].cast("integer"))
+    test_df = test_df.withColumn("order_hour_of_day", test_df["order_hour_of_day"].cast("integer"))
 
-test_df = assembler.transform(test_df)
+    test_df = encoder.transform(test_df)
 
-# Run prediction
-prediction_df = rf_model.transform(test_df)
-prediction_df = prediction_df.drop("cat_idx").drop("cat_vec").drop("features")
-prediction_df = prediction_df.withColumn(
-    "prediction",
-    F.round(F.col("prediction")).cast("int")
-)
-os.makedirs(prediction_csv_path, exist_ok=True)
+    # Rebuild the feature vector
+    assembler = VectorAssembler(
+        inputCols=["order_dow", "order_hour_of_day", "cat_vec"],
+        outputCol="features"
+    )
 
-# Save each DataFrame as a CSV
-prediction_df.coalesce(1).write.mode("overwrite").csv(f"{prediction_csv_path}", header=True)
+    test_df = assembler.transform(test_df)
+
+    # Run prediction
+    prediction_df = rf_model.transform(test_df)
+    prediction_df = prediction_df.drop("cat_idx").drop("cat_vec").drop("features")
+    prediction_df = prediction_df.withColumn(
+        "prediction",
+        F.round(F.col("prediction")).cast("int")
+    )
+    os.makedirs(prediction_csv_path, exist_ok=True)
+
+    # Save each DataFrame as a CSV
+    prediction_df.coalesce(1).write.mode("overwrite").csv(f"{prediction_csv_path}", header=True)
+
+    execution_timestamp = datetime.now()
+    with open(f'{BASE_DIR}/inference_log.txt', "a") as logFile:
+        logFile.write(f"[{execution_timestamp}] Inference output written to {prediction_csv_path}.\n")
+
+if __name__== "__main__":
+    main()

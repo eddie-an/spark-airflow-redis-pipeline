@@ -5,24 +5,19 @@ import pyspark.sql.functions as F
 import os
 import glob
 import shutil
+import sys
+from datetime import datetime
 
+spark = SparkSession.builder.master("local[*]").getOrCreate()
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-def main():
-    spark = SparkSession.builder.master("local[*]").getOrCreate()
-
-    start_day = 0
-    end_day = 6
-
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+def loadCSV(start_day, end_day):
     input_csv_path = os.path.join(BASE_DIR, f'../../data/processed/{start_day}/*.csv')
-    test_csv_path = os.path.join(BASE_DIR, "test_set")
-
 
     df = None
     if glob.glob(input_csv_path): # If there are .csv files inside the csv_path folder then create DataFrame
         df = spark.read.csv(input_csv_path, header=True, sep=",")
         print("combined day 0 file")
-
 
     for i in range(start_day+1, end_day+1):
         input_csv_path = os.path.join(BASE_DIR, f'../../data/processed/{i}/*.csv')
@@ -35,19 +30,29 @@ def main():
             df = df_new
         else:
             df = df.union(df_new)
-        print(f"combined day {i} file")
+    return df
+
+def saveCSV(df, path):
+    # Make sure the output directory exists (Spark won't overwrite unless you tell it)
+    os.makedirs(path, exist_ok=True)
+
+    # Save each DataFrame as a CSV
+    df.coalesce(1).write.mode("overwrite").csv(f"{path}", header=True)
+
+def main():
+    start_day = 0
+    end_day = 6
+
+    test_csv_path = os.path.join(BASE_DIR, "test_set")
+    df = loadCSV(start_day, end_day)
 
     if df is None: # If there are no processed csv files to work with, just stop the process
-        return
+        print("No processed CSV files found. Exiting.")
+        sys.exit(1)
     
     # Train Test Data Split
     train_df, test_df = df.randomSplit([0.9, 0.1], seed=42)
-
-    # Make sure the output directory exists (Spark won't overwrite unless you tell it)
-    os.makedirs(test_csv_path, exist_ok=True)
-
-    # Save each DataFrame as a CSV
-    df.coalesce(1).write.mode("overwrite").csv(f"{test_csv_path}", header=True)
+    saveCSV(test_df, test_csv_path) # Save the test set for inference.py to use later
 
     # Assigns an arbitrary number to each category type
     indexer = StringIndexer(inputCol="category", outputCol="cat_idx")
@@ -106,9 +111,16 @@ def main():
     if os.path.exists(MODEL_DIR):
         shutil.rmtree(MODEL_DIR)
 
+    # Save the trained model, indexer, and encoder for inference.py to use later
     rf_model.save(os.path.join(MODEL_DIR, "rf_model"))
     fitted_indexer.save(os.path.join(MODEL_DIR, "indexer"))
     fitted_encoder.save(os.path.join(MODEL_DIR, "encoder"))
+
+
+    execution_timestamp = datetime.now()
+    with open(f'{BASE_DIR}/train_log.txt', "a") as logFile:
+        logFile.write(f"[{execution_timestamp}] Random Forest Model has been trained and exported to {MODEL_DIR}. "
+        f"Test set written to {test_csv_path}.\n")
 
 
 
