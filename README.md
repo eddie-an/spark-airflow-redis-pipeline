@@ -1,8 +1,5 @@
 # spark-airflow-redis-pipeline
-## SENG 550 Assignment 3
-### Members:
-- Edward An UCID: 30142179
-- Sahib Singh Thethi UCID: 30117033
+## Data Pipeline & ML Inference System
 
 # Files
 #### Part 0
